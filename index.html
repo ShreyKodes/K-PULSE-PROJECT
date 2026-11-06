@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>K-PULSE | Modern Campus & Community Event Management Platform</title>
+  <meta name="description" content="Discover, explore, and register for premier hackathons, cultural fests, esports tournaments, and academic workshops.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons for clean UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Background Decorative Ambient Blobs -->
+  <div class="ambient-glow glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow glow-2" aria-hidden="true"></div>
+
+  <!-- ========================================================
+       TOP NOTIFICATION BANNER
+       ======================================================== -->
+  <div class="announcement-bar">
+    <div class="container announcement-inner">
+      <span class="announcement-pill"><i class="fa-solid fa-sparkles"></i> LIVE</span>
+      <p class="announcement-text">Winter 2026-27 Registrations are now officially live! Limited seats per category.</p>
+      <a href="#events-section" class="announcement-link">Explore Now <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       STICKY NAVBAR
+       ======================================================== -->
+  <header class="site-header" id="header">
+    <div class="container navbar">
+      <!-- Brand Logo -->
+      <a href="#home" class="brand-logo" aria-label="K-Pulse Homepage">
+        <span class="logo-symbol">
+          <i class="fa-solid fa-bolt-lightning"></i>
+        </span>
+        <span class="logo-text">K-PULSE<span class="logo-dot">.</span></span>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="nav-menu" id="nav-menu">
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#home" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a></li>
+          <li class="nav-item"><a href="#featured-section" class="nav-link"><i class="fa-solid fa-fire"></i> Featured</a></li>
+          <li class="nav-item"><a href="#events-section" class="nav-link"><i class="fa-solid fa-calendar-days"></i> All Events</a></li>
+          <li class="nav-item"><a href="#categories-section" class="nav-link"><i class="fa-solid fa-layer-group"></i> Categories</a></li>
+          <li class="nav-item"><a href="#organizer-view" class="nav-link" id="nav-organizer-btn"><i class="fa-solid fa-chart-pie"></i> Organizer Portal</a></li>
+        </ul>
+      </nav>
+
+      <!-- Navigation Actions -->
+      <div class="nav-actions">
+        <!-- Quick Search Bar Shortcut Trigger -->
+        <button type="button" class="search-trigger-btn" id="search-trigger" title="Search events (Press /)" aria-label="Open search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span class="search-hint">Search <kbd>/</kbd></span>
+        </button>
+
+        <!-- Dark / Light Mode Switcher (Bonus Requirement) -->
+        <button type="button" class="theme-toggle-btn" id="theme-toggle" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+          <i class="fa-solid fa-moon theme-icon-moon"></i>
+          <i class="fa-solid fa-sun theme-icon-sun"></i>
+        </button>
+
+        <!-- "My Tickets" Button with Live Badge Counter -->
+        <button type="button" class="btn-tickets" id="my-tickets-btn" title="View my registered tickets">
+          <i class="fa-solid fa-ticket"></i>
+          <span class="tickets-label">My Tickets</span>
+          <span class="tickets-badge" id="tickets-count-badge">0</span>
+        </button>
+
+        <!-- Mobile Menu Toggle Hamburger -->
+        <button type="button" class="mobile-toggle-btn" id="mobile-toggle" aria-label="Toggle Navigation Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================
+       HERO SECTION
+       ======================================================== -->
+  <section class="hero-section" id="home">
+    <div class="container hero-container">
+      <div class="hero-content">
+        <div class="hero-tag">
+          <span class="pulse-indicator"></span>
+          <span>Campus & Community Event Hub • 2026 Edition</span>
+        </div>
+        <h1 class="hero-title">
+          Where Big Ideas, Culture & Competition <span class="gradient-text">Ignite Together.</span>
+        </h1>
+        <p class="hero-lead">
+          Discover hackathons, cultural festivals, esports showdowns, and certified design masterclasses. View schedules, check live seat availability, and lock in your verified digital passes in seconds.
+        </p>
+
+        <!-- Quick CTAs -->
+        <div class="hero-cta-group">
+          <a href="#events-section" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-compass"></i> Explore Events
+          </a>
+          <button type="button" class="btn btn-secondary btn-lg" id="hero-quick-register-btn">
+            <i class="fa-solid fa-id-badge"></i> Quick Register
+          </button>
+        </div>
+
+        <!-- Metric Badges -->
+        <div class="hero-metrics">
+          <div class="metric-card">
+            <span class="metric-number" id="metric-events-count">8+</span>
+            <span class="metric-label">Curated Events</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-card">
+            <span class="metric-number">2,500+</span>
+            <span class="metric-label">Attendees Joined</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-card">
+            <span class="metric-number">100%</span>
+            <span class="metric-label">Digital QR Passes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Visual / Floating Spotlight Card -->
+      <div class="hero-visual">
+        <div class="floating-spotlight-card">
+          <div class="spotlight-image-wrap">
+            <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80" alt="InnovateX Hackathon" class="spotlight-img">
+            <span class="spotlight-badge"><i class="fa-solid fa-crown"></i> Spotlight of the Month</span>
+          </div>
+          <div class="spotlight-body">
+            <div class="spotlight-meta">
+              <span class="category-tag"><i class="fa-solid fa-code"></i> Tech & Hackathons</span>
+              <span class="status-indicator live-pulse">Filling Fast</span>
+            </div>
+            <h3 class="spotlight-title">InnovateX 2026: 36-Hour National Hackathon</h3>
+            <p class="spotlight-desc">₹3,00,000+ prize pool, industry mentors, and round-the-clock food & dorms.</p>
+            
+            <!-- Live Mini Countdown -->
+            <div class="spotlight-countdown-wrap">
+              <span class="countdown-label"><i class="fa-regular fa-clock"></i> Starts in:</span>
+              <div class="countdown-timer hero-timer" data-target="2026-11-20T09:00:00">
+                <div class="time-box"><span class="days">--</span><small>D</small></div>
+                <span class="time-sep">:</span>
+                <div class="time-box"><span class="hours">--</span><small>H</small></div>
+                <span class="time-sep">:</span>
+                <div class="time-box"><span class="minutes">--</span><small>M</small></div>
+                <span class="time-sep">:</span>
+                <div class="time-box"><span class="seconds">--</span><small>S</small></div>
+              </div>
+            </div>
+
+            <div class="spotlight-actions">
+              <button type="button" class="btn btn-primary btn-block view-details-btn" data-event-id="evt-innovatex-2026">
+                View Full Agenda & Register <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       FEATURED EVENT SPOTLIGHT (Detailed Breakdown with Countdown)
+       ======================================================== -->
+  <section class="featured-section" id="featured-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="section-subtitle"><i class="fa-solid fa-star"></i> Headline Attraction</span>
+        <h2 class="section-title">Flagship Event Countdown</h2>
+        <p class="section-desc">Don't miss our largest inter-university gathering. Real-time seats and registration tracking.</p>
+      </div>
+
+      <div class="featured-banner-card" id="featured-banner">
+        <div class="featured-banner-grid">
+          <div class="featured-image-box">
+            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1000&q=80" alt="Harmonics Echo Fest" class="featured-banner-img">
+            <div class="featured-overlay">
+              <span class="featured-pill"><i class="fa-solid fa-music"></i> Cultural Mega-Fest</span>
+            </div>
+          </div>
+
+          <div class="featured-info-box">
+            <div class="featured-tag-row">
+              <span class="badge badge-warning"><i class="fa-solid fa-fire"></i> Selling Fast</span>
+              <span class="badge badge-outline"><i class="fa-solid fa-location-dot"></i> Open Air Amphitheatre</span>
+            </div>
+            
+            <h3 class="featured-event-name">Harmonics Echo: Inter-University Music Festival</h3>
+            <p class="featured-event-desc">
+              Experience electrifying battles between 14 premier college bands, indie rock acoustic acts, food trucks, and an unforgettable headlining DJ concert with synchronized laser shows.
+            </p>
+
+            <div class="featured-meta-grid">
+              <div class="meta-item">
+                <i class="fa-regular fa-calendar-check"></i>
+                <div>
+                  <strong>Date & Time</strong>
+                  <span>Nov 28, 2026 • 05:30 PM IST</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-ticket"></i>
+                <div>
+                  <strong>Entry Pass</strong>
+                  <span>₹150 / Student (Merch Included)</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-users"></i>
+                <div>
+                  <strong>Seat Status</strong>
+                  <span>1,040 / 1,200 Passes Claimed</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seat Progress Bar -->
+            <div class="seat-progress-container">
+              <div class="seat-progress-labels">
+                <span>Availability Capacity</span>
+                <span class="seat-percentage">86% Booked</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 86%;"></div>
+              </div>
+            </div>
+
+            <!-- Full Countdown Clock (Bonus Challenge) -->
+            <div class="featured-countdown-wrapper">
+              <span class="clock-label"><i class="fa-solid fa-hourglass-half"></i> Countdown to Gates Opening:</span>
+              <div class="countdown-timer banner-timer" data-target="2026-11-28T17:30:00">
+                <div class="time-block">
+                  <span class="days time-val">00</span>
+                  <span class="time-unit">Days</span>
+                </div>
+                <div class="time-block">
+                  <span class="hours time-val">00</span>
+                  <span class="time-unit">Hours</span>
+                </div>
+                <div class="time-block">
+                  <span class="minutes time-val">00</span>
+                  <span class="time-unit">Mins</span>
+                </div>
+                <div class="time-block">
+                  <span class="seconds time-val">00</span>
+                  <span class="time-unit">Secs</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="featured-actions">
+              <button type="button" class="btn btn-primary btn-lg register-now-btn" data-event-id="evt-harmonics-fest-2026">
+                <i class="fa-solid fa-ticket-simple"></i> Register for Pass
+              </button>
+              <button type="button" class="btn btn-outline btn-lg view-details-btn" data-event-id="evt-harmonics-fest-2026">
+                <i class="fa-solid fa-circle-info"></i> View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       CATEGORY BROWSING TILES
+       ======================================================== -->
+  <section class="categories-section" id="categories-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="section-subtitle"><i class="fa-solid fa-compass"></i> Discover By Interest</span>
+        <h2 class="section-title">Explore by Categories</h2>
+        <p class="section-desc">Filter events matched specifically to your passions and career aspirations.</p>
+      </div>
+
+      <div class="category-cards-grid">
+        <div class="category-tile" data-cat-filter="tech">
+          <div class="category-icon-wrap cat-tech">
+            <i class="fa-solid fa-code"></i>
+          </div>
+          <h3 class="category-name">Tech & Hackathons</h3>
+          <p class="category-count">2 Active Events</p>
+        </div>
+
+        <div class="category-tile" data-cat-filter="cultural">
+          <div class="category-icon-wrap cat-cultural">
+            <i class="fa-solid fa-masks-theater"></i>
+          </div>
+          <h3 class="category-name">Cultural & Arts</h3>
+          <p class="category-count">2 Active Events</p>
+        </div>
+
+        <div class="category-tile" data-cat-filter="sports">
+          <div class="category-icon-wrap cat-sports">
+            <i class="fa-solid fa-gamepad"></i>
+          </div>
+          <h3 class="category-name">Sports & Esports</h3>
+          <p class="category-count">2 Active Events</p>
+        </div>
+
+        <div class="category-tile" data-cat-filter="workshops">
+          <div class="category-icon-wrap cat-workshops">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <h3 class="category-name">Workshops & Masterclasses</h3>
+          <p class="category-count">1 Active Event</p>
+        </div>
+
+        <div class="category-tile" data-cat-filter="business">
+          <div class="category-icon-wrap cat-business">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <h3 class="category-name">Business & Pitch</h3>
+          <p class="category-count">1 Active Event</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       MAIN EVENTS CATALOG (Filter, Search, Sort & Grid Cards)
+       ======================================================== -->
+  <section class="events-section" id="events-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="header-left">
+          <span class="section-subtitle"><i class="fa-solid fa-list-check"></i> Complete Schedule</span>
+          <h2 class="section-title">Upcoming Events Directory</h2>
+          <p class="section-desc">Search, filter by category, check schedules, and reserve your place.</p>
+        </div>
+        <div class="header-right">
+          <div class="view-switchers" role="group" aria-label="Layout toggle">
+            <button type="button" class="view-btn active" id="view-grid" title="Grid View" aria-label="Grid View">
+              <i class="fa-solid fa-grip"></i>
+            </button>
+            <button type="button" class="view-btn" id="view-list" title="Compact List View" aria-label="List View">
+              <i class="fa-solid fa-bars"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Bar: Category Pills + Live Search + Sorting -->
+      <div class="catalog-controls-card">
+        <!-- Category Filter Pills -->
+        <div class="category-filters-scroll" role="tablist">
+          <button type="button" class="filter-pill active" data-category="all" role="tab" aria-selected="true">
+            <i class="fa-solid fa-border-all"></i> All Events
+          </button>
+          <button type="button" class="filter-pill" data-category="tech" role="tab" aria-selected="false">
+            <i class="fa-solid fa-code"></i> Tech & Hackathons
+          </button>
+          <button type="button" class="filter-pill" data-category="cultural" role="tab" aria-selected="false">
+            <i class="fa-solid fa-music"></i> Cultural & Music
+          </button>
+          <button type="button" class="filter-pill" data-category="sports" role="tab" aria-selected="false">
+            <i class="fa-solid fa-trophy"></i> Sports & Gaming
+          </button>
+          <button type="button" class="filter-pill" data-category="workshops" role="tab" aria-selected="false">
+            <i class="fa-solid fa-graduation-cap"></i> Workshops
+          </button>
+          <button type="button" class="filter-pill" data-category="business" role="tab" aria-selected="false">
+            <i class="fa-solid fa-chart-line"></i> Business & Pitch
+          </button>
+        </div>
+
+        <!-- Filter Sub-Bar: Search Input & Sort Selector -->
+        <div class="filter-subbar">
+          <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="event-search-input" class="search-input" placeholder="Search events by title, keyword, or venue..." aria-label="Search events">
+            <button type="button" id="search-clear-btn" class="search-clear-btn" aria-label="Clear search" style="display: none;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div class="sort-wrapper">
+            <label for="event-sort-select" class="sort-label"><i class="fa-solid fa-arrow-down-short-wide"></i> Sort:</label>
+            <select id="event-sort-select" class="sort-select" aria-label="Sort events">
+              <option value="date-asc">Date (Earliest First)</option>
+              <option value="date-desc">Date (Latest First)</option>
+              <option value="popularity">Most Popular / Capacity</option>
+              <option value="title-asc">Alphabetical (A - Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Active Filter Indicator / Results Count -->
+        <div class="results-meta-row">
+          <span class="results-count" id="results-count">Showing <strong>8</strong> events</span>
+          <button type="button" id="reset-filters-btn" class="reset-link" style="display: none;">
+            <i class="fa-solid fa-rotate-left"></i> Reset Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- Events Container (Cards Grid / List) -->
+      <div class="events-grid" id="events-grid">
+        <!-- Dynamically Rendered by JS -->
+      </div>
+
+      <!-- Empty State if no events match search/filter -->
+      <div class="empty-state-card" id="empty-state" style="display: none;">
+        <div class="empty-state-icon">
+          <i class="fa-solid fa-calendar-xmark"></i>
+        </div>
+        <h3 class="empty-state-title">No Events Found</h3>
+        <p class="empty-state-desc">We couldn't find any events matching your selected filters or keywords.</p>
+        <button type="button" class="btn btn-secondary" id="empty-reset-btn">
+          <i class="fa-solid fa-arrows-rotate"></i> Clear All Filters
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       BENEFITS / WHY ATTEND SECTION
+       ======================================================== -->
+  <section class="benefits-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="section-subtitle"><i class="fa-solid fa-shield-check"></i> Seamless Experience</span>
+        <h2 class="section-title">Built for Students & Organizers</h2>
+        <p class="section-desc">Experience frictionless event discovery and registration with modern web standards.</p>
+      </div>
+
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon-box">
+            <i class="fa-solid fa-qrcode"></i>
+          </div>
+          <h3 class="benefit-title">Instant Digital E-Tickets</h3>
+          <p class="benefit-text">Receive a customized verifiable QR badge upon registration. Print or save directly to your phone.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-box">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <h3 class="benefit-title">Real-Time Countdown Clocks</h3>
+          <p class="benefit-text">Always stay on schedule with live ticking countdown timers for every upcoming seminar and hackathon.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-box">
+            <i class="fa-solid fa-database"></i>
+          </div>
+          <h3 class="benefit-title">Offline & Local Persistence</h3>
+          <p class="benefit-text">Your booked registrations and preferences are securely stored locally so you never lose your spot.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-box">
+            <i class="fa-solid fa-certificate"></i>
+          </div>
+          <h3 class="benefit-title">Accredited Certificates</h3>
+          <p class="benefit-text">Earn verifiable participation and winner certificates for technical workshops and competitions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       MODAL: EVENT DETAILED VIEW (Problem Statement Requirement)
+       ======================================================== -->
+  <div class="modal-overlay" id="event-detail-modal" aria-hidden="true" role="dialog" aria-labelledby="modal-event-title">
+    <div class="modal-card modal-detail-card">
+      <button type="button" class="modal-close-btn" data-close-modal="event-detail-modal" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="modal-detail-hero">
+        <img src="" alt="" id="modal-event-img" class="modal-hero-img">
+        <div class="modal-hero-overlay">
+          <div class="modal-badges-row">
+            <span class="category-tag" id="modal-category-tag">Category</span>
+            <span class="badge" id="modal-status-badge">Status</span>
+            <span class="badge badge-outline" id="modal-mode-badge"><i class="fa-solid fa-building-columns"></i> In-Person</span>
+          </div>
+          <h2 class="modal-title" id="modal-event-title">Event Title Here</h2>
+        </div>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Quick Meta Info Pills -->
+        <div class="modal-meta-bar">
+          <div class="meta-pill">
+            <i class="fa-regular fa-calendar-days"></i>
+            <div>
+              <small>Date</small>
+              <strong id="modal-date">Date here</strong>
+            </div>
+          </div>
+          <div class="meta-pill">
+            <i class="fa-regular fa-clock"></i>
+            <div>
+              <small>Time</small>
+              <strong id="modal-time">Time here</strong>
+            </div>
+          </div>
+          <div class="meta-pill">
+            <i class="fa-solid fa-location-dot"></i>
+            <div>
+              <small>Venue</small>
+              <strong id="modal-venue">Venue here</strong>
+            </div>
+          </div>
+          <div class="meta-pill">
+            <i class="fa-solid fa-wallet"></i>
+            <div>
+              <small>Ticket Fee</small>
+              <strong id="modal-price">Free</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Countdown inside Modal -->
+        <div class="modal-countdown-box">
+          <div class="countdown-heading">
+            <i class="fa-solid fa-stopwatch"></i> Event Starts In:
+          </div>
+          <div class="countdown-timer modal-timer" id="modal-timer">
+            <div class="time-box"><span class="days">--</span><small>Days</small></div>
+            <span class="time-sep">:</span>
+            <div class="time-box"><span class="hours">--</span><small>Hours</small></div>
+            <span class="time-sep">:</span>
+            <div class="time-box"><span class="minutes">--</span><small>Mins</small></div>
+            <span class="time-sep">:</span>
+            <div class="time-box"><span class="seconds">--</span><small>Secs</small></div>
+          </div>
+        </div>
+
+        <!-- Event Overview & Description -->
+        <div class="modal-section">
+          <h3 class="modal-section-heading"><i class="fa-solid fa-align-left"></i> About the Event</h3>
+          <p class="modal-description-text" id="modal-full-desc">Detailed description will load here...</p>
+        </div>
+
+        <!-- Agenda / Schedule Timeline -->
+        <div class="modal-section">
+          <h3 class="modal-section-heading"><i class="fa-solid fa-timeline"></i> Event Timeline & Schedule</h3>
+          <div class="timeline-container" id="modal-timeline">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Keynote Speakers / Organizers -->
+        <div class="modal-section" id="modal-speakers-section">
+          <h3 class="modal-section-heading"><i class="fa-solid fa-user-tie"></i> Featured Speakers & Guests</h3>
+          <div class="speakers-grid" id="modal-speakers-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Seat Capacity Bar -->
+        <div class="modal-section">
+          <div class="seat-progress-container">
+            <div class="seat-progress-labels">
+              <span>Registration Status</span>
+              <span id="modal-seats-text">-- / -- Seats Taken</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="modal-seats-bar" style="width: 50%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer CTA -->
+      <div class="modal-footer-cta">
+        <button type="button" class="btn btn-secondary" data-close-modal="event-detail-modal">Close</button>
+        <button type="button" class="btn btn-primary btn-lg" id="modal-register-action-btn">
+          <i class="fa-solid fa-id-card-clip"></i> Register for This Event
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: EVENT REGISTRATION FORM (With JavaScript Validation)
+       ======================================================== -->
+  <div class="modal-overlay" id="registration-modal" aria-hidden="true" role="dialog" aria-labelledby="reg-form-title">
+    <div class="modal-card modal-form-card">
+      <button type="button" class="modal-close-btn" data-close-modal="registration-modal" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="form-modal-header">
+        <span class="form-modal-badge"><i class="fa-solid fa-pen-nib"></i> Official Registration</span>
+        <h2 class="form-modal-title" id="reg-form-title">Reserve Your Event Pass</h2>
+        <p class="form-modal-subtitle">Complete the details below to receive your instant digital entry badge.</p>
+      </div>
+
+      <form id="event-registration-form" novalidate>
+        <div class="form-grid">
+          <!-- Full Name -->
+          <div class="form-group">
+            <label for="reg-name" class="form-label">
+              Full Name <span class="required">*</span>
+            </label>
+            <div class="input-icon-wrap">
+              <i class="fa-regular fa-user"></i>
+              <input type="text" id="reg-name" name="name" class="form-input" placeholder="e.g. Shreyan Mohanty" autocomplete="name" required>
+            </div>
+            <span class="field-error-msg" id="error-reg-name"></span>
+          </div>
+
+          <!-- Email Address -->
+          <div class="form-group">
+            <label for="reg-email" class="form-label">
+              Email Address <span class="required">*</span>
+            </label>
+            <div class="input-icon-wrap">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" id="reg-email" name="email" class="form-input" placeholder="e.g. shreyan@campus.edu" autocomplete="email" required>
+            </div>
+            <span class="field-error-msg" id="error-reg-email"></span>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="form-group">
+            <label for="reg-phone" class="form-label">
+              Phone Number <span class="required">*</span>
+            </label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-phone"></i>
+              <input type="tel" id="reg-phone" name="phone" class="form-input" placeholder="e.g. 9876543210 (10 digits)" autocomplete="tel" required>
+            </div>
+            <span class="field-error-msg" id="error-reg-phone"></span>
+          </div>
+
+          <!-- Select Event Dropdown (Preselected or manual) -->
+          <div class="form-group">
+            <label for="reg-event" class="form-label">
+              Select Preferred Event <span class="required">*</span>
+            </label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-calendar-check"></i>
+              <select id="reg-event" name="eventId" class="form-select" required>
+                <option value="">-- Choose an Event --</option>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <span class="field-error-msg" id="error-reg-event"></span>
+          </div>
+
+          <!-- Participant Category / Role -->
+          <div class="form-group">
+            <label for="reg-role" class="form-label">
+              Participant Category <span class="required">*</span>
+            </label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <select id="reg-role" name="role" class="form-select" required>
+                <option value="Undergraduate Student">Undergraduate Student</option>
+                <option value="Postgraduate / PhD">Postgraduate / PhD</option>
+                <option value="Faculty / Staff">Faculty / Staff Member</option>
+                <option value="External Guest">External Guest / Participant</option>
+                <option value="Alumni">University Alumni</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- College Roll / ID Number (Optional) -->
+          <div class="form-group">
+            <label for="reg-roll" class="form-label">
+              Student / Employee ID <small class="text-muted">(Optional)</small>
+            </label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-id-card"></i>
+              <input type="text" id="reg-roll" name="rollNumber" class="form-input" placeholder="e.g. 21051234">
+            </div>
+          </div>
+        </div>
+
+        <!-- Special Requirements / Queries -->
+        <div class="form-group mt-3">
+          <label for="reg-notes" class="form-label">
+            Dietary Restrictions or Special Accommodations <small class="text-muted">(Optional)</small>
+          </label>
+          <textarea id="reg-notes" name="notes" class="form-textarea" rows="2" placeholder="e.g. Vegetarian preference, wheelchair access, etc."></textarea>
+        </div>
+
+        <!-- Terms Agreement Checkbox -->
+        <div class="form-check-group mt-3">
+          <label class="checkbox-container">
+            <input type="checkbox" id="reg-terms" required>
+            <span class="checkmark"></span>
+            <span class="checkbox-label">I certify that the information entered is accurate, and I agree to abide by the campus event code of conduct. <span class="required">*</span></span>
+          </label>
+          <span class="field-error-msg" id="error-reg-terms"></span>
+        </div>
+
+        <!-- Form Submission Actions -->
+        <div class="form-actions mt-4">
+          <button type="button" class="btn btn-secondary" data-close-modal="registration-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="submit-reg-btn">
+            <span class="btn-text"><i class="fa-solid fa-paper-plane"></i> Confirm Registration</span>
+            <span class="btn-spinner" style="display: none;"><i class="fa-solid fa-circle-notch fa-spin"></i> Processing...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: REGISTRATION SUCCESS CONFIRMATION & E-TICKET
+       ======================================================== -->
+  <div class="modal-overlay" id="ticket-modal" aria-hidden="true" role="dialog" aria-labelledby="ticket-modal-title">
+    <div class="modal-card modal-ticket-card">
+      <button type="button" class="modal-close-btn" data-close-modal="ticket-modal" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Canvas for celebration confetti -->
+      <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
+
+      <div class="ticket-success-header text-center">
+        <div class="success-icon-badge">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <h2 class="ticket-success-title" id="ticket-modal-title">Registration Confirmed!</h2>
+        <p class="ticket-success-desc">
+          Your seat has been reserved successfully. Here is your official entry boarding pass:
+        </p>
+      </div>
+
+      <!-- Visual E-Ticket Container (Printable) -->
+      <div class="printable-ticket" id="printable-ticket-content">
+        <div class="ticket-stub-left">
+          <div class="ticket-brand">
+            <span class="logo-symbol-sm"><i class="fa-solid fa-bolt-lightning"></i></span>
+            <span>K-PULSE PASS</span>
+          </div>
+
+          <div class="ticket-qr-box">
+            <canvas id="ticket-qr-canvas" width="140" height="140"></canvas>
+            <small class="ticket-code-text" id="ticket-reg-id">KP-2026-00000</small>
+          </div>
+
+          <div class="ticket-scan-hint">Scan at Gates</div>
+        </div>
+
+        <div class="ticket-stub-right">
+          <div class="ticket-header-row">
+            <span class="ticket-cat-badge" id="ticket-category">TECH EVENT</span>
+            <span class="ticket-verified-tag"><i class="fa-solid fa-circle-check"></i> VERIFIED ATTENDEE</span>
+          </div>
+
+          <h3 class="ticket-event-name" id="ticket-event-name">InnovateX 2026: 36-Hour National Hackathon</h3>
+
+          <div class="ticket-grid">
+            <div class="ticket-item">
+              <span class="t-label">ATTENDEE NAME</span>
+              <strong class="t-val" id="ticket-attendee-name">Shreyan Mohanty</strong>
+            </div>
+            <div class="ticket-item">
+              <span class="t-label">CATEGORY / ROLE</span>
+              <strong class="t-val" id="ticket-attendee-role">Undergraduate Student</strong>
+            </div>
+            <div class="ticket-item">
+              <span class="t-label">EVENT DATE</span>
+              <strong class="t-val" id="ticket-event-date">Nov 20, 2026</strong>
+            </div>
+            <div class="ticket-item">
+              <span class="t-label">TIMINGS</span>
+              <strong class="t-val" id="ticket-event-time">09:00 AM IST</strong>
+            </div>
+            <div class="ticket-item full-span">
+              <span class="t-label">VENUE LOCATION</span>
+              <strong class="t-val" id="ticket-event-venue">Auditorium Hall 1, Campus 6</strong>
+            </div>
+          </div>
+
+          <div class="ticket-footer-strip">
+            <span>Non-transferable • Present student photo ID at entry gate</span>
+            <span id="ticket-timestamp">Booked on: Today</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket Actions -->
+      <div class="ticket-actions-row">
+        <button type="button" class="btn btn-secondary" id="print-ticket-btn">
+          <i class="fa-solid fa-print"></i> Print / Save as PDF
+        </button>
+        <button type="button" class="btn btn-primary" id="view-my-tickets-from-modal-btn">
+          <i class="fa-solid fa-ticket"></i> View in "My Tickets"
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       DRAWER / MODAL: "MY TICKETS" (Local Storage Management)
+       ======================================================== -->
+  <div class="modal-overlay" id="my-tickets-modal" aria-hidden="true" role="dialog" aria-labelledby="my-tickets-title">
+    <div class="modal-card modal-drawer-card">
+      <button type="button" class="modal-close-btn" data-close-modal="my-tickets-modal" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="drawer-header">
+        <div class="drawer-header-icon">
+          <i class="fa-solid fa-ticket"></i>
+        </div>
+        <div>
+          <h2 class="drawer-title" id="my-tickets-title">My Event Registrations</h2>
+          <p class="drawer-subtitle">Manage your booked events stored safely in your browser (LocalStorage).</p>
+        </div>
+      </div>
+
+      <!-- Search in my tickets -->
+      <div class="drawer-search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="tickets-search-input" placeholder="Search my registered passes..." aria-label="Search my tickets">
+      </div>
+
+      <!-- List of Tickets -->
+      <div class="my-tickets-list" id="my-tickets-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Empty state if no tickets -->
+      <div class="no-tickets-state" id="no-tickets-state" style="display: none;">
+        <i class="fa-solid fa-ticket-simple"></i>
+        <h4>No Registrations Yet</h4>
+        <p>You haven't registered for any events yet. Explore our upcoming events catalog and book your pass!</p>
+        <button type="button" class="btn btn-primary" data-close-modal="my-tickets-modal" onclick="document.getElementById('events-section').scrollIntoView({behavior:'smooth'})">
+          Browse Events
+        </button>
+      </div>
+
+      <!-- Drawer Footer Actions -->
+      <div class="drawer-footer">
+        <button type="button" class="btn btn-outline-danger btn-sm" id="clear-all-tickets-btn">
+          <i class="fa-solid fa-trash-can"></i> Clear All Passes
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" data-close-modal="my-tickets-modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: ORGANIZER / ADMIN DASHBOARD PORTAL
+       ======================================================== -->
+  <div class="modal-overlay" id="organizer-modal" aria-hidden="true" role="dialog" aria-labelledby="organizer-portal-title">
+    <div class="modal-card modal-organizer-card">
+      <button type="button" class="modal-close-btn" data-close-modal="organizer-modal" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="organizer-header">
+        <div>
+          <span class="badge badge-info"><i class="fa-solid fa-shield"></i> Administration Panel</span>
+          <h2 class="organizer-title" id="organizer-portal-title">Event Organizer & Attendee Roster</h2>
+          <p class="organizer-desc">Inspect all registrations saved in local storage, review attendees, and export roster data.</p>
+        </div>
+        <div class="organizer-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="export-csv-btn">
+            <i class="fa-solid fa-file-csv"></i> Export Roster (CSV)
+          </button>
+        </div>
+      </div>
+
+      <!-- Organizer Stats Row -->
+      <div class="organizer-stats-row">
+        <div class="org-stat-box">
+          <span class="org-stat-val" id="org-total-regs">0</span>
+          <span class="org-stat-lbl">Total Registrations</span>
+        </div>
+        <div class="org-stat-box">
+          <span class="org-stat-val" id="org-active-events">8</span>
+          <span class="org-stat-lbl">Active Events</span>
+        </div>
+        <div class="org-stat-box">
+          <span class="org-stat-val" id="org-unique-attendees">0</span>
+          <span class="org-stat-lbl">Unique Emails</span>
+        </div>
+      </div>
+
+      <!-- Attendee Table with Search/Filter -->
+      <div class="table-container">
+        <table class="roster-table" id="roster-table">
+          <thead>
+            <tr>
+              <th>Reg ID</th>
+              <th>Attendee Name</th>
+              <th>Email & Phone</th>
+              <th>Event Title</th>
+              <th>Category</th>
+              <th>Timestamp</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="roster-table-body">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+        <div id="roster-empty-notice" class="roster-empty-notice" style="display: none;">
+          No attendee registrations recorded yet. Register for an event to see it appear here!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       TOAST NOTIFICATION POPUP
+       ======================================================== -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- ========================================================
+       FOOTER SECTION
+       ======================================================== -->
+  <footer class="site-footer">
+    <div class="container footer-top">
+      <div class="footer-brand-col">
+        <div class="brand-logo footer-logo">
+          <span class="logo-symbol"><i class="fa-solid fa-bolt-lightning"></i></span>
+          <span class="logo-text">K-PULSE<span class="logo-dot">.</span></span>
+        </div>
+        <p class="footer-brand-text">
+          A modern, high-performance responsive event management web platform designed and engineered for the Web Designing Course curriculum.
+        </p>
+        <div class="student-author-tag">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>Developed by: <strong>Shreyan</strong> • Web Designing Course</span>
+        </div>
+      </div>
+
+      <div class="footer-links-col">
+        <h4 class="footer-heading">Quick Navigation</h4>
+        <ul class="footer-links">
+          <li><a href="#home"><i class="fa-solid fa-chevron-right"></i> Home Overview</a></li>
+          <li><a href="#featured-section"><i class="fa-solid fa-chevron-right"></i> Featured Event</a></li>
+          <li><a href="#events-section"><i class="fa-solid fa-chevron-right"></i> Upcoming Events</a></li>
+          <li><a href="#categories-section"><i class="fa-solid fa-chevron-right"></i> Categories</a></li>
+          <li><a href="javascript:void(0)" id="footer-my-tickets-trigger"><i class="fa-solid fa-chevron-right"></i> My Stored Passes</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links-col">
+        <h4 class="footer-heading">Categories</h4>
+        <ul class="footer-links">
+          <li><a href="#events-section" data-cat-link="tech"><i class="fa-solid fa-chevron-right"></i> Tech & Hackathons</a></li>
+          <li><a href="#events-section" data-cat-link="cultural"><i class="fa-solid fa-chevron-right"></i> Cultural & Music</a></li>
+          <li><a href="#events-section" data-cat-link="sports"><i class="fa-solid fa-chevron-right"></i> Sports & Esports</a></li>
+          <li><a href="#events-section" data-cat-link="workshops"><i class="fa-solid fa-chevron-right"></i> UI/UX Masterclasses</a></li>
+          <li><a href="#events-section" data-cat-link="business"><i class="fa-solid fa-chevron-right"></i> Startup Pitch Fests</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links-col">
+        <h4 class="footer-heading">Technical Highlights</h4>
+        <div class="tech-tags-list">
+          <span class="tech-tag">HTML5 Semantic</span>
+          <span class="tech-tag">CSS3 Modern Tokens</span>
+          <span class="tech-tag">ES6+ JavaScript</span>
+          <span class="tech-tag">LocalStorage API</span>
+          <span class="tech-tag">Real-Time Countdowns</span>
+          <span class="tech-tag">Instant Form Validation</span>
+          <span class="tech-tag">Dark/Light Mode</span>
+          <span class="tech-tag">Dynamic QR Ticket Pass</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p class="copyright-text">
+          &copy; 2026 K-PULSE Event Management System. Crafted with precision for academic submission.
+        </p>
+        <div class="footer-bottom-actions">
+          <a href="#home" class="back-to-top" aria-label="Back to top">
+            Back to Top <i class="fa-solid fa-arrow-up"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+
