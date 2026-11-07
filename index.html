@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=3.0">
 </head>
 <body>
 
@@ -70,6 +70,12 @@
         <button type="button" class="theme-toggle-btn" id="theme-toggle" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
           <i class="fa-solid fa-moon theme-icon-moon"></i>
           <i class="fa-solid fa-sun theme-icon-sun"></i>
+        </button>
+
+        <!-- Live Multi-Device Cloud Sync Status -->
+        <button type="button" class="sync-nav-pill" id="nav-sync-pill" title="Live Multi-Device Sync: Connected">
+          <span class="sync-dot live"></span>
+          <span class="sync-nav-text">Live Sync</span>
         </button>
 
         <!-- "My Tickets" Button with Live Badge Counter -->
@@ -834,6 +840,29 @@
         </div>
       </div>
 
+      <!-- Cloud Multi-Device Sync Controls -->
+      <div class="sync-banner">
+        <div class="sync-banner-info">
+          <span class="sync-status-indicator online" id="drawer-sync-status">
+            <span class="sync-pulse-dot"></span>
+            <span class="sync-status-text">Realtime Sync Active</span>
+          </span>
+          <span class="sync-room-pill" id="sync-room-display" title="Click to change sync room">Room: kpulse_campus_sync_v1</span>
+        </div>
+        <div class="sync-banner-actions">
+          <button type="button" class="btn btn-outline-primary btn-xs" id="drawer-sync-now-btn" title="Force sync with cloud">
+            <i class="fa-solid fa-arrows-rotate"></i> Sync
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-xs" id="export-tickets-json-btn" title="Export tickets as JSON backup">
+            <i class="fa-solid fa-download"></i> Backup
+          </button>
+          <label class="btn btn-outline-secondary btn-xs import-tickets-label" title="Import tickets from JSON file">
+            <i class="fa-solid fa-upload"></i> Restore
+            <input type="file" id="import-tickets-file-input" accept=".json" style="display:none;">
+          </label>
+        </div>
+      </div>
+
       <!-- Search in my tickets -->
       <div class="drawer-search-bar">
         <i class="fa-solid fa-magnifying-glass"></i>
@@ -883,6 +912,9 @@
           <p class="organizer-desc">Inspect all registrations saved in local storage, review attendees, and export roster data.</p>
         </div>
         <div class="organizer-actions">
+          <button type="button" class="btn btn-outline-primary btn-sm" id="org-sync-now-btn" title="Sync registrations from cloud">
+            <i class="fa-solid fa-arrows-rotate"></i> Sync Live
+          </button>
           <button type="button" class="btn btn-primary btn-sm" id="export-csv-btn">
             <i class="fa-solid fa-file-csv"></i> Export Roster (CSV)
           </button>
@@ -1106,8 +1138,8 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/data.js?v=2.2"></script>
-  <script src="js/app.js?v=2.2"></script>
+  <script src="js/data.js?v=3.0"></script>
+  <script src="js/app.js?v=3.0"></script>
 </body>
 </html>
 

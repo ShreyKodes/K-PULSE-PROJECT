@@ -56,9 +56,11 @@ The primary objective is to deliver a fast, responsive, and accessible user expe
 - Dynamic 2D canvas-based QR code encoding the unique ticket reference ID, attendee name, and event metadata.
 - Built-in print/export option enabling users to download or print their pass.
 
-#### E. State Persistence & LocalStorage
-- **My Tickets Drawer**: Attendees can view, search, review, and cancel their active bookings at any time.
-- Data persists in the browser via the HTML5 `localStorage` API, maintaining ticket state across page refreshes and browser sessions.
+#### E. Real-Time Multi-Device Cloud Sync & State Persistence
+- **Cross-Laptop Synchronization**: Tickets registered on any laptop are broadcast in real-time across all connected devices via low-latency Server-Sent Events (SSE).
+- **Instant Live Updates**: When a booking is made or cancelled on one machine, other laptops instantly update their ticket count badge, "My Tickets" drawer, and Organizer Roster without page reloads.
+- **Offline-First Resilience & LocalStorage**: Data automatically persists locally in HTML5 `localStorage` so tickets remain available offline, while synchronizing with the cloud sync hub when online.
+- **One-Click Backup & Restore**: Built-in JSON export and import options allow organizers and attendees to back up passes or transfer them across machines seamlessly.
 
 #### F. Dark / Light Theme System
 - Integrated theme switcher toggling between dark mode and light mode.

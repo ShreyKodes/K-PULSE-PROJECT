@@ -13,7 +13,8 @@
 const STORAGE_KEYS = {
   THEME: "kpulse_theme_pref",
   REGISTRATIONS: "kpulse_user_registrations",
-  CUSTOM_EVENTS: "kpulse_custom_events"
+  CUSTOM_EVENTS: "kpulse_custom_events",
+  SYNC_ROOM: "kpulse_sync_room"
 };
 
 // Global App State
@@ -138,7 +139,16 @@ const DOM = {
   exportCsvBtn: document.getElementById("export-csv-btn"),
 
   // Toasts
-  toastContainer: document.getElementById("toast-container")
+  toastContainer: document.getElementById("toast-container"),
+
+  // Cloud Sync Controls
+  navSyncPill: document.getElementById("nav-sync-pill"),
+  drawerSyncStatus: document.getElementById("drawer-sync-status"),
+  syncRoomDisplay: document.getElementById("sync-room-display"),
+  drawerSyncNowBtn: document.getElementById("drawer-sync-now-btn"),
+  exportTicketsJsonBtn: document.getElementById("export-tickets-json-btn"),
+  importTicketsFileInput: document.getElementById("import-tickets-file-input"),
+  orgSyncNowBtn: document.getElementById("org-sync-now-btn")
 };
 
 // ============================================================================
@@ -147,8 +157,8 @@ const DOM = {
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   loadRegistrationsFromStorage();
-  syncWithGlobalStorage();
-  setInterval(syncWithGlobalStorage, 5000);
+  initRealtimeCloudStream();
+  fetchRecentCloudSync();
   populateEventDropdown();
   renderEvents();
   initGlobalCountdowns();
@@ -179,9 +189,278 @@ function toggleTheme() {
 }
 
 // ============================================================================
-// 5. GLOBAL CLOUD & LOCAL STORAGE SYNC (MULTI-DEVICE GLOBAL STORAGE)
+// 5. GLOBAL CLOUD & REALTIME MULTI-DEVICE SYNC ENGINE
 // ============================================================================
-const GLOBAL_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a1b63ff59a5c85";
+const DEFAULT_SYNC_ROOM = "kpulse_campus_sync_v1";
+const CLIENT_ID = "client_" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+let activeEventSource = null;
+let isCloudOnline = true;
+
+function getSyncRoom() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomParam = urlParams.get("room");
+  if (roomParam && roomParam.trim()) {
+    const cleanRoom = roomParam.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+    localStorage.setItem(STORAGE_KEYS.SYNC_ROOM, cleanRoom);
+    return cleanRoom;
+  }
+  return localStorage.getItem(STORAGE_KEYS.SYNC_ROOM) || DEFAULT_SYNC_ROOM;
+}
+
+function setSyncRoom(newRoom) {
+  if (!newRoom || !newRoom.trim()) return;
+  const cleanRoom = newRoom.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+  localStorage.setItem(STORAGE_KEYS.SYNC_ROOM, cleanRoom);
+  if (DOM.syncRoomDisplay) {
+    DOM.syncRoomDisplay.textContent = `Room: ${cleanRoom}`;
+  }
+  initRealtimeCloudStream();
+  fetchRecentCloudSync();
+  showToast(`Switched sync room to "${cleanRoom}"`, "info");
+}
+
+function updateSyncStatusUI(online) {
+  isCloudOnline = online;
+  const navPill = document.getElementById("nav-sync-pill");
+  const drawerStatus = document.getElementById("drawer-sync-status");
+  const roomDisp = document.getElementById("sync-room-display");
+
+  const currentRoom = getSyncRoom();
+  if (roomDisp) {
+    roomDisp.textContent = `Room: ${currentRoom}`;
+  }
+
+  if (online) {
+    if (navPill) {
+      navPill.innerHTML = '<span class="sync-dot live"></span><span class="sync-nav-text">Live Sync</span>';
+      navPill.title = `Live Sync Connected: Room "${currentRoom}" (Instant sync with other devices)`;
+    }
+    if (drawerStatus) {
+      drawerStatus.className = "sync-status-indicator online";
+      drawerStatus.innerHTML = '<span class="sync-pulse-dot"></span><span class="sync-status-text">Realtime Sync Active</span>';
+    }
+  } else {
+    if (navPill) {
+      navPill.innerHTML = '<span class="sync-dot offline"></span><span class="sync-nav-text">Offline</span>';
+      navPill.title = "Reconnecting to live cloud sync...";
+    }
+    if (drawerStatus) {
+      drawerStatus.className = "sync-status-indicator offline";
+      drawerStatus.innerHTML = '<span class="sync-pulse-dot" style="background:#ef4444"></span><span class="sync-status-text">Connecting...</span>';
+    }
+  }
+}
+
+async function broadcastCloudMessage(action) {
+  const room = getSyncRoom();
+  const payload = {
+    senderId: CLIENT_ID,
+    timestamp: Date.now(),
+    ...action
+  };
+
+  try {
+    await fetch(`https://ntfy.sh/${room}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    updateSyncStatusUI(true);
+  } catch (err) {
+    console.warn("Cloud sync broadcast error:", err);
+    updateSyncStatusUI(false);
+  }
+}
+
+function handleIncomingSyncMessage(msg, isInitialSync = false) {
+  if (!msg || typeof msg !== "object") return;
+  if (msg.senderId === CLIENT_ID) return; // Don't process our own broadcasted events
+
+  let stateChanged = false;
+
+  // 1. New Ticket registered on another laptop
+  if (msg.type === "ADD_TICKET" && msg.ticket && msg.ticket.id) {
+    const exists = state.registrations.some(r => r.id === msg.ticket.id);
+    if (!exists) {
+      state.registrations.unshift(msg.ticket);
+      stateChanged = true;
+
+      // Update seat count on event card
+      const targetEvent = state.events.find(e => e.id === msg.ticket.eventId);
+      if (targetEvent && targetEvent.registeredCount < targetEvent.capacity) {
+        targetEvent.registeredCount++;
+      }
+
+      if (!isInitialSync) {
+        showToast(`Live Synced: New pass for ${msg.ticket.name} (${msg.ticket.eventTitle})`, "success");
+      }
+    }
+  }
+  // 2. Ticket cancelled on another laptop
+  else if (msg.type === "REMOVE_TICKET" && msg.ticketId) {
+    const existing = state.registrations.find(r => r.id === msg.ticketId);
+    if (existing) {
+      state.registrations = state.registrations.filter(r => r.id !== msg.ticketId);
+      stateChanged = true;
+
+      const targetEvent = state.events.find(e => e.id === existing.eventId);
+      if (targetEvent && targetEvent.registeredCount > 0) {
+        targetEvent.registeredCount--;
+      }
+
+      if (!isInitialSync) {
+        showToast(`Pass ${msg.ticketId} cancelled on another device.`, "info");
+      }
+    }
+  }
+  // 3. Clear all tickets
+  else if (msg.type === "CLEAR_ALL_TICKETS") {
+    if (state.registrations.length > 0) {
+      state.registrations = [];
+      stateChanged = true;
+      if (!isInitialSync) {
+        showToast("Passes cleared across synced devices.", "info");
+      }
+    }
+  }
+  // 4. Custom Event hosted on another laptop
+  else if (msg.type === "ADD_EVENT" && msg.event && msg.event.id) {
+    const exists = (state.customEvents || []).some(e => e.id === msg.event.id);
+    if (!exists) {
+      if (!state.customEvents) state.customEvents = [];
+      state.customEvents.unshift(msg.event);
+      state.events.unshift(msg.event);
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_EVENTS, JSON.stringify(state.customEvents));
+      renderEvents();
+      populateEventDropdown();
+      if (DOM.metricEventsCount) {
+        DOM.metricEventsCount.textContent = `${state.events.length}+`;
+      }
+      if (!isInitialSync) {
+        showToast(`Live Synced: New event hosted: "${msg.event.title}"`, "info");
+      }
+    }
+  }
+  // 5. Full sync snapshot
+  else if (msg.type === "SYNC_SNAPSHOT") {
+    if (Array.isArray(msg.tickets)) {
+      const regMap = new Map();
+      state.registrations.forEach(r => { if (r && r.id) regMap.set(r.id, r); });
+      msg.tickets.forEach(r => { if (r && r.id) regMap.set(r.id, r); });
+      const merged = Array.from(regMap.values());
+      if (merged.length !== state.registrations.length) {
+        state.registrations = merged;
+        stateChanged = true;
+      }
+    }
+    if (Array.isArray(msg.customEvents)) {
+      const eventMap = new Map();
+      (state.customEvents || []).forEach(e => { if (e && e.id) eventMap.set(e.id, e); });
+      msg.customEvents.forEach(e => { if (e && e.id) eventMap.set(e.id, e); });
+      const mergedEvents = Array.from(eventMap.values());
+      if (mergedEvents.length !== (state.customEvents || []).length) {
+        state.customEvents = mergedEvents;
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_EVENTS, JSON.stringify(state.customEvents));
+        const allMap = new Map();
+        INITIAL_EVENTS.forEach(e => allMap.set(e.id, e));
+        state.customEvents.forEach(e => allMap.set(e.id, e));
+        state.events = Array.from(allMap.values());
+        renderEvents();
+        populateEventDropdown();
+        if (DOM.metricEventsCount) {
+          DOM.metricEventsCount.textContent = `${state.events.length}+`;
+        }
+      }
+    }
+  }
+
+  if (stateChanged) {
+    localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(state.registrations));
+    updateTicketsBadge();
+    renderEvents();
+
+    if (DOM.myTicketsModal && DOM.myTicketsModal.classList.contains("active")) {
+      renderMyTicketsList();
+    }
+    if (DOM.organizerModal && DOM.organizerModal.classList.contains("active")) {
+      openOrganizerModal();
+    }
+  }
+}
+
+async function fetchRecentCloudSync() {
+  const room = getSyncRoom();
+  try {
+    const res = await fetch(`https://ntfy.sh/${room}/json?poll=1`);
+    if (!res.ok) {
+      updateSyncStatusUI(false);
+      return;
+    }
+    const text = await res.text();
+    if (text && text.trim()) {
+      const lines = text.trim().split("\n");
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const item = JSON.parse(line);
+          if (item.event === "message" && item.message) {
+            const data = JSON.parse(item.message);
+            handleIncomingSyncMessage(data, true);
+          }
+        } catch (e) {}
+      }
+    }
+
+    // Share local tickets so newly opened devices get them
+    if (state.registrations.length > 0 || (state.customEvents && state.customEvents.length > 0)) {
+      broadcastCloudMessage({
+        type: "SYNC_SNAPSHOT",
+        tickets: state.registrations,
+        customEvents: state.customEvents || []
+      });
+    }
+
+    updateSyncStatusUI(true);
+  } catch (err) {
+    console.warn("Failed to fetch cloud sync history:", err);
+    updateSyncStatusUI(false);
+  }
+}
+
+function initRealtimeCloudStream() {
+  const room = getSyncRoom();
+  if (activeEventSource) {
+    try { activeEventSource.close(); } catch(e) {}
+    activeEventSource = null;
+  }
+
+  try {
+    activeEventSource = new EventSource(`https://ntfy.sh/${room}/sse`);
+
+    activeEventSource.onopen = () => {
+      updateSyncStatusUI(true);
+    };
+
+    activeEventSource.onmessage = (event) => {
+      try {
+        const item = JSON.parse(event.data);
+        if (item.event === "message" && item.message) {
+          const data = JSON.parse(item.message);
+          handleIncomingSyncMessage(data, false);
+        }
+      } catch (err) {
+        console.warn("Failed to parse realtime stream message:", err);
+      }
+    };
+
+    activeEventSource.onerror = () => {
+      updateSyncStatusUI(false);
+    };
+  } catch (err) {
+    console.warn("EventSource not available, fallback to manual/poll:", err);
+    updateSyncStatusUI(false);
+  }
+}
 
 function loadRegistrationsFromStorage() {
   try {
@@ -206,71 +485,7 @@ function loadRegistrationsFromStorage() {
   }
 }
 
-async function syncWithGlobalStorage() {
-  try {
-    const res = await fetch(GLOBAL_STORE_URL);
-    if (!res.ok) return;
-    const json = await res.json();
-    if (json && json.data) {
-      let shouldRerenderEvents = false;
-
-      // 1. Sync Custom Hosted Events
-      if (Array.isArray(json.data.customEvents)) {
-        const serverEvents = json.data.customEvents;
-        const eventMap = new Map();
-        serverEvents.forEach(e => { if (e && e.id) eventMap.set(e.id, e); });
-        (state.customEvents || []).forEach(e => { if (e && e.id) eventMap.set(e.id, e); });
-        const mergedEvents = Array.from(eventMap.values());
-
-        if (mergedEvents.length !== (state.customEvents || []).length) {
-          state.customEvents = mergedEvents;
-          localStorage.setItem(STORAGE_KEYS.CUSTOM_EVENTS, JSON.stringify(state.customEvents));
-
-          const allEventsMap = new Map();
-          INITIAL_EVENTS.forEach(e => allEventsMap.set(e.id, e));
-          state.customEvents.forEach(e => allEventsMap.set(e.id, e));
-          state.events = Array.from(allEventsMap.values());
-          shouldRerenderEvents = true;
-        }
-      }
-
-      // 2. Sync Registrations/Tickets
-      if (Array.isArray(json.data.tickets)) {
-        const serverTickets = json.data.tickets;
-        const map = new Map();
-        serverTickets.forEach(t => { if (t && t.id) map.set(t.id, t); });
-        state.registrations.forEach(t => { if (t && t.id) map.set(t.id, t); });
-        const merged = Array.from(map.values());
-
-        const changed = merged.length !== state.registrations.length;
-        state.registrations = merged;
-        localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(state.registrations));
-        updateTicketsBadge();
-
-        if (changed) {
-          if (DOM.myTicketsModal && DOM.myTicketsModal.classList.contains("active")) {
-            renderMyTicketsList();
-          }
-          if (DOM.organizerRosterBody) {
-            renderOrganizerTable();
-          }
-        }
-      }
-
-      if (shouldRerenderEvents) {
-        renderEvents();
-        populateEventDropdown();
-        if (DOM.metricEventsCount) {
-          DOM.metricEventsCount.textContent = `${state.events.length}+`;
-        }
-      }
-    }
-  } catch (err) {
-    console.warn("Global storage background sync: using local cache", err);
-  }
-}
-
-async function saveRegistrationsToStorage() {
+function saveRegistrationsToStorage(actionType = null, payload = null) {
   // 1. Instant local persistence
   try {
     localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(state.registrations));
@@ -279,22 +494,70 @@ async function saveRegistrationsToStorage() {
     console.error("Failed to save to localStorage", err);
   }
 
-  // 2. Global Cloud Sync across all laptops
-  try {
-    await fetch(GLOBAL_STORE_URL, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: "K-PULSE Global Tickets Store",
-        data: {
-          tickets: state.registrations,
-          customEvents: state.customEvents || []
-        }
-      })
+  // 2. Broadcast to other laptops
+  if (actionType && payload) {
+    broadcastCloudMessage({ type: actionType, ...payload });
+  } else {
+    broadcastCloudMessage({
+      type: "SYNC_SNAPSHOT",
+      tickets: state.registrations,
+      customEvents: state.customEvents || []
     });
-  } catch (err) {
-    console.warn("Global storage sync update pending:", err);
   }
+}
+
+function triggerManualSync() {
+  showToast("Syncing registrations with cloud...", "info");
+  fetchRecentCloudSync().then(() => {
+    renderMyTicketsList();
+    if (DOM.organizerModal && DOM.organizerModal.classList.contains("active")) {
+      openOrganizerModal();
+    }
+    showToast(`Live Synced: ${state.registrations.length} total pass(es) ready across all devices.`, "success");
+  });
+}
+
+function exportTicketsJSON() {
+  if (state.registrations.length === 0) {
+    showToast("No registrations available to backup.", "error");
+    return;
+  }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.registrations, null, 2));
+  const dlAnchor = document.createElement("a");
+  dlAnchor.setAttribute("href", dataStr);
+  dlAnchor.setAttribute("download", `kpulse_tickets_backup_${Date.now()}.json`);
+  document.body.appendChild(dlAnchor);
+  dlAnchor.click();
+  dlAnchor.remove();
+  showToast("Passes exported to JSON backup file!", "success");
+}
+
+function importTicketsJSON(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported)) {
+        const regMap = new Map();
+        state.registrations.forEach(r => { if (r && r.id) regMap.set(r.id, r); });
+        imported.forEach(r => { if (r && r.id) regMap.set(r.id, r); });
+        state.registrations = Array.from(regMap.values());
+
+        saveRegistrationsToStorage();
+        renderMyTicketsList();
+        if (DOM.organizerModal && DOM.organizerModal.classList.contains("active")) {
+          openOrganizerModal();
+        }
+        showToast(`Successfully imported ${imported.length} pass(es) and synced!`, "success");
+      } else {
+        showToast("Invalid JSON file format.", "error");
+      }
+    } catch (err) {
+      showToast("Failed to read JSON backup file.", "error");
+    }
+  };
+  reader.readAsText(file);
 }
 
 function updateTicketsBadge() {
@@ -735,9 +998,9 @@ function handleRegistrationSubmit(e) {
       timestamp: new Date().toLocaleString()
     };
 
-    // Store in State & LocalStorage
+    // Store in State & LocalStorage and broadcast live across all laptops
     state.registrations.unshift(newRegistration);
-    saveRegistrationsToStorage();
+    saveRegistrationsToStorage("ADD_TICKET", { ticket: newRegistration });
 
     // Increment event seat count
     if (targetEvent.registeredCount < targetEvent.capacity) {
@@ -839,22 +1102,8 @@ async function handleHostEventSubmit(e) {
     DOM.metricEventsCount.textContent = `${state.events.length}+`;
   }
 
-  // Push to Global Cloud Store
-  try {
-    await fetch(GLOBAL_STORE_URL, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: "K-PULSE Global Tickets Store",
-        data: {
-          tickets: state.registrations,
-          customEvents: state.customEvents
-        }
-      })
-    });
-  } catch (err) {
-    console.warn("Could not sync new event to cloud immediately:", err);
-  }
+  // Broadcast live across all laptops
+  broadcastCloudMessage({ type: "ADD_EVENT", event: newEvent });
 
   closeModal(DOM.hostEventModal);
   DOM.hostEventForm.reset();
@@ -1011,7 +1260,7 @@ function triggerConfetti() {
 function openMyTicketsDrawer() {
   renderMyTicketsList();
   openModal(DOM.myTicketsModal);
-  syncWithGlobalStorage();
+  fetchRecentCloudSync();
 }
 
 function renderMyTicketsList(filterQuery = "") {
@@ -1062,7 +1311,7 @@ function cancelRegistration(regId) {
 
   if (confirm(`Are you sure you want to cancel your registration for:\n"${reg.eventTitle}"?`)) {
     state.registrations = state.registrations.filter(r => r.id !== regId);
-    saveRegistrationsToStorage();
+    saveRegistrationsToStorage("REMOVE_TICKET", { ticketId: regId });
 
     // Decrease count on event
     const event = state.events.find(e => e.id === reg.eventId);
@@ -1084,7 +1333,7 @@ function clearAllRegistrations() {
 
   if (confirm("Are you sure you want to delete ALL your stored event passes? This cannot be undone.")) {
     state.registrations = [];
-    saveRegistrationsToStorage();
+    saveRegistrationsToStorage("CLEAR_ALL_TICKETS");
     renderMyTicketsList();
     showToast("All passes have been removed.", "info");
   }
@@ -1442,5 +1691,36 @@ function initEventListeners() {
   DOM.printTicketBtn.addEventListener("click", () => {
     window.print();
   });
+
+  // Cloud Sync Actions
+  if (DOM.navSyncPill) {
+    DOM.navSyncPill.addEventListener("click", triggerManualSync);
+  }
+  if (DOM.drawerSyncNowBtn) {
+    DOM.drawerSyncNowBtn.addEventListener("click", triggerManualSync);
+  }
+  if (DOM.orgSyncNowBtn) {
+    DOM.orgSyncNowBtn.addEventListener("click", triggerManualSync);
+  }
+  if (DOM.syncRoomDisplay) {
+    DOM.syncRoomDisplay.addEventListener("click", () => {
+      const current = getSyncRoom();
+      const entered = prompt("Enter Cloud Sync Room Code (share with other laptops to sync):", current);
+      if (entered && entered.trim() && entered.trim() !== current) {
+        setSyncRoom(entered.trim());
+      }
+    });
+  }
+  if (DOM.exportTicketsJsonBtn) {
+    DOM.exportTicketsJsonBtn.addEventListener("click", exportTicketsJSON);
+  }
+  if (DOM.importTicketsFileInput) {
+    DOM.importTicketsFileInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        importTicketsJSON(e.target.files[0]);
+        e.target.value = "";
+      }
+    });
+  }
 }
 
