@@ -139,6 +139,8 @@ const DOM = {
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   loadRegistrationsFromStorage();
+  syncWithGlobalStorage();
+  setInterval(syncWithGlobalStorage, 5000);
   populateEventDropdown();
   renderEvents();
   initGlobalCountdowns();
@@ -169,8 +171,10 @@ function toggleTheme() {
 }
 
 // ============================================================================
-// 5. LOCAL STORAGE MANAGEMENT (BONUS REQUIREMENT)
+// 5. GLOBAL CLOUD & LOCAL STORAGE SYNC (MULTI-DEVICE GLOBAL STORAGE)
 // ============================================================================
+const GLOBAL_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a1b63ff59a5c85";
+
 function loadRegistrationsFromStorage() {
   try {
     const rawData = localStorage.getItem(STORAGE_KEYS.REGISTRATIONS);
@@ -181,13 +185,58 @@ function loadRegistrationsFromStorage() {
   }
 }
 
-function saveRegistrationsToStorage() {
+async function syncWithGlobalStorage() {
+  try {
+    const res = await fetch(GLOBAL_STORE_URL);
+    if (!res.ok) return;
+    const json = await res.json();
+    if (json && json.data && Array.isArray(json.data.tickets)) {
+      const serverTickets = json.data.tickets;
+      const map = new Map();
+      serverTickets.forEach(t => { if (t && t.id) map.set(t.id, t); });
+      state.registrations.forEach(t => { if (t && t.id) map.set(t.id, t); });
+      const merged = Array.from(map.values());
+
+      const changed = merged.length !== state.registrations.length;
+      state.registrations = merged;
+      localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(state.registrations));
+      updateTicketsBadge();
+
+      if (changed) {
+        if (DOM.myTicketsModal && DOM.myTicketsModal.classList.contains("active")) {
+          renderMyTicketsList();
+        }
+        if (DOM.organizerRosterBody) {
+          renderOrganizerTable();
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Global storage background sync: using local cache", err);
+  }
+}
+
+async function saveRegistrationsToStorage() {
+  // 1. Instant local persistence
   try {
     localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(state.registrations));
     updateTicketsBadge();
   } catch (err) {
     console.error("Failed to save to localStorage", err);
-    showToast("Storage error: unable to save pass locally", "error");
+  }
+
+  // 2. Global Cloud Sync across all laptops
+  try {
+    await fetch(GLOBAL_STORE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "K-PULSE Global Tickets Store",
+        data: { tickets: state.registrations }
+      })
+    });
+  } catch (err) {
+    console.warn("Global storage sync update pending:", err);
   }
 }
 
@@ -798,6 +847,7 @@ function triggerConfetti() {
 function openMyTicketsDrawer() {
   renderMyTicketsList();
   openModal(DOM.myTicketsModal);
+  syncWithGlobalStorage();
 }
 
 function renderMyTicketsList(filterQuery = "") {
