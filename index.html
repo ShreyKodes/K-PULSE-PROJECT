@@ -15,9 +15,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/style.css?v=3.0">
+  <link rel="stylesheet" href="css/style.css?v=3.5">
 </head>
 <body>
+
+  <!-- Top Realtime Scroll Progress Bar -->
+  <div id="scroll-progress-bar" class="scroll-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
 
   <!-- Background Decorative Ambient Blobs -->
   <div class="ambient-glow glow-1" aria-hidden="true"></div>
@@ -66,6 +69,12 @@
           <span class="search-hint">Search <kbd>/</kbd></span>
         </button>
 
+        <!-- Audio Synthesizer FX Toggle -->
+        <button type="button" class="sound-toggle-btn" id="sound-toggle" title="Sound Effects: ON (Click to Mute)" aria-label="Toggle Sound Effects">
+          <i class="fa-solid fa-volume-high sound-icon-on"></i>
+          <i class="fa-solid fa-volume-xmark sound-icon-off" style="display:none;"></i>
+        </button>
+
         <!-- Dark / Light Mode Switcher (Bonus Requirement) -->
         <button type="button" class="theme-toggle-btn" id="theme-toggle" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
           <i class="fa-solid fa-moon theme-icon-moon"></i>
@@ -104,6 +113,9 @@
        HERO SECTION
        ======================================================== -->
   <section class="hero-section" id="home">
+    <!-- Interactive Background Constellation & Aurora Particle Canvas -->
+    <canvas id="hero-particle-canvas" class="hero-particle-canvas" aria-hidden="true"></canvas>
+
     <div class="container hero-container">
       <div class="hero-content">
         <div class="hero-tag">
@@ -814,6 +826,12 @@
         <button type="button" class="btn btn-secondary" id="print-ticket-btn">
           <i class="fa-solid fa-print"></i> Print / Save as PDF
         </button>
+        <button type="button" class="btn btn-outline" id="download-pass-img-btn" title="Download pass as image">
+          <i class="fa-solid fa-image"></i> Download Card
+        </button>
+        <button type="button" class="btn btn-outline" id="toggle-holo-btn" title="Toggle holographic shimmer effect">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="holo-btn-text">Holo Shimmer</span>
+        </button>
         <button type="button" class="btn btn-primary" id="view-my-tickets-from-modal-btn">
           <i class="fa-solid fa-ticket"></i> View in "My Tickets"
         </button>
@@ -1137,9 +1155,98 @@
     </div>
   </div>
 
+  <!-- ========================================================
+       FLOATING GLASS QUICK-ACTION DOCK (Apple-Style Dock)
+       ======================================================== -->
+  <aside class="floating-dock-wrap" aria-label="Quick Actions Dock">
+    <nav class="floating-dock">
+      <a href="#home" class="dock-item" title="Home (Top)" aria-label="Go to Top">
+        <i class="fa-solid fa-house"></i>
+        <span class="dock-tooltip">Home</span>
+      </a>
+      <a href="#events-section" class="dock-item" title="Explore Catalog" aria-label="Explore Events">
+        <i class="fa-solid fa-compass"></i>
+        <span class="dock-tooltip">Events</span>
+      </a>
+      <button type="button" class="dock-item" id="dock-my-tickets" title="My Tickets" aria-label="Open My Tickets">
+        <i class="fa-solid fa-ticket"></i>
+        <span class="dock-badge" id="dock-tickets-badge">0</span>
+        <span class="dock-tooltip">My Passes</span>
+      </button>
+      <button type="button" class="dock-item dock-item-highlight" id="dock-host-btn" title="Host New Event" aria-label="Host Event">
+        <i class="fa-solid fa-plus"></i>
+        <span class="dock-tooltip">Host</span>
+      </button>
+      <button type="button" class="dock-item" id="dock-shortcuts-btn" title="Keyboard Shortcuts (?)" aria-label="Keyboard Shortcuts">
+        <i class="fa-solid fa-keyboard"></i>
+        <span class="dock-tooltip">Shortcuts</span>
+      </button>
+      <button type="button" class="dock-item" id="dock-sound-btn" title="Sound Effects" aria-label="Toggle Sound">
+        <i class="fa-solid fa-volume-high dock-sound-icon"></i>
+        <span class="dock-tooltip">Sound</span>
+      </button>
+      <button type="button" class="dock-item" id="dock-top-btn" title="Back to Top" aria-label="Scroll to top">
+        <i class="fa-solid fa-arrow-up"></i>
+        <span class="dock-tooltip">Top</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ========================================================
+       MODAL: KEYBOARD SHORTCUTS CHEATSHEET
+       ======================================================== -->
+  <div class="modal-overlay" id="shortcuts-modal" aria-hidden="true" role="dialog" aria-labelledby="shortcuts-title">
+    <div class="modal-card modal-shortcuts-card">
+      <button type="button" class="modal-close-btn" data-close-modal="shortcuts-modal" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="shortcuts-header">
+        <div class="shortcuts-icon"><i class="fa-solid fa-keyboard"></i></div>
+        <div>
+          <h2 class="shortcuts-title" id="shortcuts-title">Keyboard Navigation & Shortcuts</h2>
+          <p class="shortcuts-subtitle">Power user commands to navigate K-PULSE lightning fast.</p>
+        </div>
+      </div>
+      <div class="shortcuts-grid">
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Focus live event search bar</span>
+          <div class="shortcut-keys"><kbd>/</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd></div>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Toggle Dark / Light Theme</span>
+          <div class="shortcut-keys"><kbd>T</kbd></div>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Open My Registered Passes drawer</span>
+          <div class="shortcut-keys"><kbd>M</kbd></div>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Host a new campus event modal</span>
+          <div class="shortcut-keys"><kbd>H</kbd></div>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Open Organizer & Roster Portal</span>
+          <div class="shortcut-keys"><kbd>O</kbd></div>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Toggle Synthesizer Sound FX</span>
+          <div class="shortcut-keys"><kbd>S</kbd></div>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Close any active modal overlay</span>
+          <div class="shortcut-keys"><kbd>ESC</kbd></div>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-desc">Show this keyboard shortcuts guide</span>
+          <div class="shortcut-keys"><kbd>?</kbd></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="js/data.js?v=3.0"></script>
-  <script src="js/app.js?v=3.0"></script>
+  <script src="js/data.js?v=3.5"></script>
+  <script src="js/app.js?v=3.5"></script>
 </body>
 </html>
 

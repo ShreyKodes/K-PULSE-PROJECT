@@ -148,7 +148,22 @@ const DOM = {
   drawerSyncNowBtn: document.getElementById("drawer-sync-now-btn"),
   exportTicketsJsonBtn: document.getElementById("export-tickets-json-btn"),
   importTicketsFileInput: document.getElementById("import-tickets-file-input"),
-  orgSyncNowBtn: document.getElementById("org-sync-now-btn")
+  orgSyncNowBtn: document.getElementById("org-sync-now-btn"),
+
+  // Advanced Jaw-Dropping UI/UX Elements
+  scrollProgressBar: document.getElementById("scroll-progress-bar"),
+  soundToggle: document.getElementById("sound-toggle"),
+  heroCanvas: document.getElementById("hero-particle-canvas"),
+  dockMyTickets: document.getElementById("dock-my-tickets"),
+  dockTicketsBadge: document.getElementById("dock-tickets-badge"),
+  dockHostBtn: document.getElementById("dock-host-btn"),
+  dockShortcutsBtn: document.getElementById("dock-shortcuts-btn"),
+  dockSoundBtn: document.getElementById("dock-sound-btn"),
+  dockTopBtn: document.getElementById("dock-top-btn"),
+  shortcutsModal: document.getElementById("shortcuts-modal"),
+  downloadPassImgBtn: document.getElementById("download-pass-img-btn"),
+  toggleHoloBtn: document.getElementById("toggle-holo-btn"),
+  holoBtnText: document.getElementById("holo-btn-text")
 };
 
 // ============================================================================
@@ -162,6 +177,10 @@ document.addEventListener("DOMContentLoaded", () => {
   populateEventDropdown();
   renderEvents();
   initGlobalCountdowns();
+  initScrollProgress();
+  initHeroParticleCanvas();
+  init3DCardTilt();
+  updateSoundUI();
   initEventListeners();
   updateTicketsBadge();
   setupKeyboardShortcuts();
@@ -185,6 +204,7 @@ function toggleTheme() {
   const newTheme = currentTheme === "dark" ? "light" : "dark";
   DOM.html.setAttribute("data-theme", newTheme);
   localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
+  playAudioFx("theme");
   showToast(`Switched to ${newTheme === "dark" ? "Dark" : "Light"} Mode`, "info");
 }
 
@@ -563,6 +583,9 @@ function importTicketsJSON(file) {
 function updateTicketsBadge() {
   const count = state.registrations.length;
   DOM.ticketsCountBadge.textContent = count;
+  if (DOM.dockTicketsBadge) {
+    DOM.dockTicketsBadge.textContent = count;
+  }
   if (count > 0) {
     DOM.ticketsCountBadge.style.display = "inline-block";
   } else {
@@ -1016,6 +1039,7 @@ function handleRegistrationSubmit(e) {
     // Close form and open Ticket modal
     closeModal(DOM.regModal);
     displayETicket(newRegistration);
+    playAudioFx("success");
     showToast("Registration successful! Your pass is ready.", "success");
   }, 600);
 }
@@ -1456,15 +1480,63 @@ function showToast(message, type = "info") {
 // ============================================================================
 function setupKeyboardShortcuts() {
   document.addEventListener("keydown", (e) => {
+    const isTyping = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName);
+
     // Escape closes active modal
     if (e.key === "Escape" && state.activeModal) {
       closeModal(state.activeModal);
+      return;
     }
+
+    if (isTyping) return;
+
     // "/" or Ctrl+K triggers event search
-    if ((e.key === "/" || (e.ctrlKey && e.key === "k")) && !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+    if (e.key === "/" || (e.ctrlKey && e.key === "k")) {
       e.preventDefault();
-      DOM.eventSearchInput.focus();
-      DOM.eventSearchInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (DOM.eventSearchInput) {
+        DOM.eventSearchInput.focus();
+        DOM.eventSearchInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+    // "?" opens shortcuts cheatsheet
+    else if (e.key === "?") {
+      e.preventDefault();
+      if (DOM.shortcutsModal) {
+        if (DOM.shortcutsModal.classList.contains("active")) {
+          closeModal(DOM.shortcutsModal);
+        } else {
+          openModal(DOM.shortcutsModal);
+          playAudioFx("click");
+        }
+      }
+    }
+    // "T" toggles theme
+    else if (e.key === "t" || e.key === "T") {
+      e.preventDefault();
+      toggleTheme();
+    }
+    // "M" opens My Tickets
+    else if (e.key === "m" || e.key === "M") {
+      e.preventDefault();
+      openMyTicketsDrawer();
+      playAudioFx("click");
+    }
+    // "H" opens Host Event
+    else if (e.key === "h" || e.key === "H") {
+      e.preventDefault();
+      openModal(DOM.hostEventModal);
+      playAudioFx("click");
+    }
+    // "O" opens Organizer Portal
+    else if (e.key === "o" || e.key === "O") {
+      e.preventDefault();
+      openOrganizerModal();
+      playAudioFx("click");
+    }
+    // "S" toggles Sound
+    else if (e.key === "s" || e.key === "S") {
+      e.preventDefault();
+      toggleSound();
     }
   });
 }
@@ -1722,5 +1794,430 @@ function initEventListeners() {
       }
     });
   }
+
+  // Audio FX Toggles
+  if (DOM.soundToggle) {
+    DOM.soundToggle.addEventListener("click", toggleSound);
+  }
+  if (DOM.dockSoundBtn) {
+    DOM.dockSoundBtn.addEventListener("click", toggleSound);
+  }
+
+  // Floating Dock Actions
+  if (DOM.dockMyTickets) {
+    DOM.dockMyTickets.addEventListener("click", () => {
+      openMyTicketsDrawer();
+      playAudioFx("click");
+    });
+  }
+  if (DOM.dockHostBtn) {
+    DOM.dockHostBtn.addEventListener("click", () => {
+      openModal(DOM.hostEventModal);
+      playAudioFx("click");
+    });
+  }
+  if (DOM.dockShortcutsBtn) {
+    DOM.dockShortcutsBtn.addEventListener("click", () => {
+      openModal(DOM.shortcutsModal);
+      playAudioFx("click");
+    });
+  }
+  if (DOM.dockTopBtn) {
+    DOM.dockTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      playAudioFx("click");
+    });
+  }
+
+  // Digital Ticket Pass Enhancements
+  if (DOM.toggleHoloBtn) {
+    DOM.toggleHoloBtn.addEventListener("click", () => {
+      const ticketCard = document.getElementById("printable-ticket-content");
+      if (ticketCard) {
+        ticketCard.classList.toggle("holo-active");
+        const isActive = ticketCard.classList.contains("holo-active");
+        if (DOM.holoBtnText) {
+          DOM.holoBtnText.textContent = isActive ? "Holo: Active ✨" : "Holo Shimmer";
+        }
+        playAudioFx("click");
+      }
+    });
+  }
+  if (DOM.downloadPassImgBtn) {
+    DOM.downloadPassImgBtn.addEventListener("click", downloadPassAsImage);
+  }
+
+  // Subtle Audio Micro-interactions on buttons & filter pills
+  document.addEventListener("click", (e) => {
+    if (e.target.closest(".btn, .filter-pill, .dock-item, .view-details-btn, .theme-toggle-btn")) {
+      playAudioFx("click");
+    }
+  });
+}
+
+// ============================================================================
+// 17. JAW-DROPPING VISUALS & WEB AUDIO SYNTHESIZER ENGINE
+// ============================================================================
+
+// Web Audio API Synthesizer (Zero External Dependencies)
+let audioCtx = null;
+let soundEnabled = localStorage.getItem("kpulse_sound_enabled") !== "false";
+
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playAudioFx(type) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    if (type === "click") {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(260, now + 0.06);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    } else if (type === "success") {
+      // 4-Note Major Harmonic Chime (C5, E5, G5, C6)
+      const freqs = [523.25, 659.25, 783.99, 1046.50];
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        const startTime = now + idx * 0.07;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.06, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.32);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + 0.32);
+      });
+    } else if (type === "theme") {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(640, now + 0.12);
+      gain.gain.setValueAtTime(0.035, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    }
+  } catch (err) {}
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem("kpulse_sound_enabled", soundEnabled);
+  updateSoundUI();
+  if (soundEnabled) {
+    playAudioFx("success");
+    showToast("Synthesizer Sound FX Enabled 🔊", "info");
+  } else {
+    showToast("Sound FX Muted 🔇", "info");
+  }
+}
+
+function updateSoundUI() {
+  const soundBtns = [DOM.soundToggle, DOM.dockSoundBtn];
+  soundBtns.forEach(btn => {
+    if (!btn) return;
+    const onIcon = btn.querySelector(".sound-icon-on");
+    const offIcon = btn.querySelector(".sound-icon-off");
+    const dockIcon = btn.querySelector(".dock-sound-icon");
+
+    if (soundEnabled) {
+      btn.classList.remove("muted");
+      btn.title = "Sound Effects: ON (Click to Mute)";
+      if (onIcon) onIcon.style.display = "inline-block";
+      if (offIcon) offIcon.style.display = "none";
+      if (dockIcon) dockIcon.className = "fa-solid fa-volume-high dock-sound-icon";
+    } else {
+      btn.classList.add("muted");
+      btn.title = "Sound Effects: MUTED (Click to Enable)";
+      if (onIcon) onIcon.style.display = "none";
+      if (offIcon) offIcon.style.display = "inline-block";
+      if (dockIcon) dockIcon.className = "fa-solid fa-volume-xmark dock-sound-icon";
+    }
+  });
+}
+
+// Top Scroll Depth Realtime Progress Bar
+function initScrollProgress() {
+  window.addEventListener("scroll", () => {
+    const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+    if (DOM.scrollProgressBar) {
+      DOM.scrollProgressBar.style.width = `${Math.min(100, Math.max(0, scrolled))}%`;
+    }
+  }, { passive: true });
+}
+
+// Interactive Hero Constellation & Aurora Particle Canvas
+function initHeroParticleCanvas() {
+  const canvas = DOM.heroCanvas;
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const parent = canvas.parentElement;
+  let width = (canvas.width = parent.offsetWidth || window.innerWidth);
+  let height = (canvas.height = parent.offsetHeight || 600);
+
+  const particles = [];
+  const particleCount = Math.min(Math.floor(width / 20), 65);
+  const mouse = { x: null, y: null, radius: 140 };
+
+  window.addEventListener("resize", () => {
+    if (!parent) return;
+    width = canvas.width = parent.offsetWidth || window.innerWidth;
+    height = canvas.height = parent.offsetHeight || 600;
+  });
+
+  parent.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  });
+
+  parent.addEventListener("mouseleave", () => {
+    mouse.x = null;
+    mouse.y = null;
+  });
+
+  class Particle {
+    constructor() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.size = Math.random() * 2 + 1;
+      this.speedX = (Math.random() - 0.5) * 0.7;
+      this.speedY = (Math.random() - 0.5) * 0.7;
+      const palette = ["#ec4899", "#6366f1", "#06b6d4", "#a855f7"];
+      this.color = palette[Math.floor(Math.random() * palette.length)];
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+
+      if (this.x > width) this.x = 0;
+      else if (this.x < 0) this.x = width;
+      if (this.y > height) this.y = 0;
+      else if (this.y < 0) this.y = height;
+
+      if (mouse.x !== null && mouse.y !== null) {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < mouse.radius) {
+          const force = (mouse.radius - dist) / mouse.radius;
+          this.x += (dx / dist) * force * 1.6;
+          this.y += (dy / dist) * force * 1.6;
+        }
+      }
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = this.color;
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(new Particle());
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+
+    for (let a = 0; a < particles.length; a++) {
+      for (let b = a + 1; b < particles.length; b++) {
+        const dx = particles[a].x - particles[b].x;
+        const dy = particles[a].y - particles[b].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 115) {
+          const opacity = (1 - dist / 115) * 0.22;
+          ctx.strokeStyle = `rgba(168, 85, 247, ${opacity})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(particles[a].x, particles[a].y);
+          ctx.lineTo(particles[b].x, particles[b].y);
+          ctx.stroke();
+        }
+      }
+      particles[a].update();
+      particles[a].draw();
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+}
+
+// 3D Interactive Card Parallax Tilt & Cursor Specular Light
+function init3DCardTilt() {
+  document.addEventListener("mousemove", (e) => {
+    const card = e.target.closest(".event-card, .floating-spotlight-card, .featured-banner-card");
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotateX = ((y - centerY) / centerY) * -6;
+    const rotateY = ((x - centerX) / centerX) * 6;
+
+    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
+    card.style.setProperty("--mouse-x", `${x}px`);
+    card.style.setProperty("--mouse-y", `${y}px`);
+  });
+
+  document.addEventListener("mouseout", (e) => {
+    const card = e.target.closest(".event-card, .floating-spotlight-card, .featured-banner-card");
+    if (!card) return;
+    if (!card.contains(e.relatedTarget)) {
+      card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)";
+    }
+  });
+}
+
+// Direct High-Resolution Ticket Card Download as PNG
+function downloadPassAsImage() {
+  const reg = state.registrations[0];
+  const title = reg ? reg.eventTitle : "K-PULSE Event Pass";
+  const attendee = reg ? reg.name : "Attendee";
+  const passId = reg ? reg.id : "KP-PASS";
+  const category = reg ? (reg.eventCategory || "Campus Event") : "Campus Event";
+  const venue = reg ? reg.eventVenue : "Campus Center";
+  const dateTime = reg ? (reg.eventDate + " • " + reg.eventTime) : "Nov 2026";
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 960;
+  canvas.height = 440;
+  const ctx = canvas.getContext("2d");
+
+  // Rich Dark Gradient Background
+  const bgGrad = ctx.createLinearGradient(0, 0, 960, 440);
+  bgGrad.addColorStop(0, "#0b0f19");
+  bgGrad.addColorStop(0.4, "#151e36");
+  bgGrad.addColorStop(1, "#0d1322");
+  ctx.fillStyle = bgGrad;
+  if (ctx.roundRect) ctx.roundRect(0, 0, 960, 440, 24);
+  else ctx.rect(0, 0, 960, 440);
+  ctx.fill();
+
+  // Outer Neon Shimmer Border
+  ctx.strokeStyle = "#8b5cf6";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // Left Ticket Stub Perforation
+  ctx.setLineDash([8, 8]);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+  ctx.beginPath();
+  ctx.moveTo(280, 0);
+  ctx.lineTo(280, 440);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw QR Code from DOM canvas if ready
+  if (DOM.ticketQrCanvas) {
+    ctx.drawImage(DOM.ticketQrCanvas, 55, 100, 170, 170);
+  }
+
+  // Left Stub Text
+  ctx.fillStyle = "#a855f7";
+  ctx.font = "bold 20px 'Space Grotesk', sans-serif";
+  ctx.fillText("K-PULSE PASS", 70, 64);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 16px monospace";
+  ctx.fillText(passId, 85, 305);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "12px sans-serif";
+  ctx.fillText("Scan at entry gate", 85, 335);
+
+  // Right Stub Content
+  ctx.fillStyle = "#10b981";
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillText("● VERIFIED DIGITAL BOARDING PASS", 310, 60);
+
+  ctx.fillStyle = "#ec4899";
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillText(category.toUpperCase(), 740, 60);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 26px sans-serif";
+  ctx.fillText(title.length > 34 ? title.substring(0, 34) + "..." : title, 310, 115);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "13px sans-serif";
+  ctx.fillText("ATTENDEE NAME", 310, 180);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 22px sans-serif";
+  ctx.fillText(attendee, 310, 210);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "13px sans-serif";
+  ctx.fillText("BOOKING STATUS", 670, 180);
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "bold 22px sans-serif";
+  ctx.fillText("CONFIRMED", 670, 210);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "13px sans-serif";
+  ctx.fillText("DATE & TIME", 310, 275);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText(dateTime, 310, 305);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "13px sans-serif";
+  ctx.fillText("VENUE LOCATION", 310, 360);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText(venue, 310, 388);
+
+  // Trigger download
+  const link = document.createElement("a");
+  link.download = `kpulse_pass_${passId}.png`;
+  link.href = canvas.toDataURL("image/png");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  playAudioFx("success");
+  showToast("High-resolution pass card saved as PNG!", "success");
 }
 
