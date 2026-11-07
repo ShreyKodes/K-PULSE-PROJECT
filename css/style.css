@@ -522,6 +522,27 @@ button {
   border-radius: var(--radius-full);
 }
 
+/* Host Event Button in Navbar */
+.host-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+  transition: all var(--transition-fast);
+}
+.host-nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+  color: #ffffff;
+}
+
 /* Mobile Toggle Hamburger */
 .mobile-toggle-btn {
   display: none;

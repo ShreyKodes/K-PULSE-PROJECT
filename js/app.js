@@ -12,12 +12,14 @@
 // ============================================================================
 const STORAGE_KEYS = {
   THEME: "kpulse_theme_pref",
-  REGISTRATIONS: "kpulse_user_registrations"
+  REGISTRATIONS: "kpulse_user_registrations",
+  CUSTOM_EVENTS: "kpulse_custom_events"
 };
 
 // Global App State
 const state = {
   events: [...INITIAL_EVENTS],
+  customEvents: [],
   registrations: [],
   currentCategory: "all",
   searchQuery: "",
@@ -41,6 +43,12 @@ const DOM = {
   myTicketsBtn: document.getElementById("my-tickets-btn"),
   ticketsCountBadge: document.getElementById("tickets-count-badge"),
   footerMyTicketsTrigger: document.getElementById("footer-my-tickets-trigger"),
+  
+  // Host Event Modal
+  hostEventModal: document.getElementById("host-event-modal"),
+  hostEventBtn: document.getElementById("host-event-btn"),
+  heroHostEventBtn: document.getElementById("hero-host-event-btn"),
+  hostEventForm: document.getElementById("host-event-form"),
   
   // Hero & Featured
   heroQuickRegBtn: document.getElementById("hero-quick-register-btn"),
@@ -183,6 +191,19 @@ function loadRegistrationsFromStorage() {
     console.error("Failed to parse registrations from localStorage", err);
     state.registrations = [];
   }
+
+  try {
+    const rawEvents = localStorage.getItem(STORAGE_KEYS.CUSTOM_EVENTS);
+    state.customEvents = rawEvents ? JSON.parse(rawEvents) : [];
+    if (state.customEvents && state.customEvents.length > 0) {
+      const allEventsMap = new Map();
+      INITIAL_EVENTS.forEach(e => allEventsMap.set(e.id, e));
+      state.customEvents.forEach(e => allEventsMap.set(e.id, e));
+      state.events = Array.from(allEventsMap.values());
+    }
+  } catch (err) {
+    state.customEvents = [];
+  }
 }
 
 async function syncWithGlobalStorage() {
@@ -190,24 +211,57 @@ async function syncWithGlobalStorage() {
     const res = await fetch(GLOBAL_STORE_URL);
     if (!res.ok) return;
     const json = await res.json();
-    if (json && json.data && Array.isArray(json.data.tickets)) {
-      const serverTickets = json.data.tickets;
-      const map = new Map();
-      serverTickets.forEach(t => { if (t && t.id) map.set(t.id, t); });
-      state.registrations.forEach(t => { if (t && t.id) map.set(t.id, t); });
-      const merged = Array.from(map.values());
+    if (json && json.data) {
+      let shouldRerenderEvents = false;
 
-      const changed = merged.length !== state.registrations.length;
-      state.registrations = merged;
-      localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(state.registrations));
-      updateTicketsBadge();
+      // 1. Sync Custom Hosted Events
+      if (Array.isArray(json.data.customEvents)) {
+        const serverEvents = json.data.customEvents;
+        const eventMap = new Map();
+        serverEvents.forEach(e => { if (e && e.id) eventMap.set(e.id, e); });
+        (state.customEvents || []).forEach(e => { if (e && e.id) eventMap.set(e.id, e); });
+        const mergedEvents = Array.from(eventMap.values());
 
-      if (changed) {
-        if (DOM.myTicketsModal && DOM.myTicketsModal.classList.contains("active")) {
-          renderMyTicketsList();
+        if (mergedEvents.length !== (state.customEvents || []).length) {
+          state.customEvents = mergedEvents;
+          localStorage.setItem(STORAGE_KEYS.CUSTOM_EVENTS, JSON.stringify(state.customEvents));
+
+          const allEventsMap = new Map();
+          INITIAL_EVENTS.forEach(e => allEventsMap.set(e.id, e));
+          state.customEvents.forEach(e => allEventsMap.set(e.id, e));
+          state.events = Array.from(allEventsMap.values());
+          shouldRerenderEvents = true;
         }
-        if (DOM.organizerRosterBody) {
-          renderOrganizerTable();
+      }
+
+      // 2. Sync Registrations/Tickets
+      if (Array.isArray(json.data.tickets)) {
+        const serverTickets = json.data.tickets;
+        const map = new Map();
+        serverTickets.forEach(t => { if (t && t.id) map.set(t.id, t); });
+        state.registrations.forEach(t => { if (t && t.id) map.set(t.id, t); });
+        const merged = Array.from(map.values());
+
+        const changed = merged.length !== state.registrations.length;
+        state.registrations = merged;
+        localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(state.registrations));
+        updateTicketsBadge();
+
+        if (changed) {
+          if (DOM.myTicketsModal && DOM.myTicketsModal.classList.contains("active")) {
+            renderMyTicketsList();
+          }
+          if (DOM.organizerRosterBody) {
+            renderOrganizerTable();
+          }
+        }
+      }
+
+      if (shouldRerenderEvents) {
+        renderEvents();
+        populateEventDropdown();
+        if (DOM.metricEventsCount) {
+          DOM.metricEventsCount.textContent = `${state.events.length}+`;
         }
       }
     }
@@ -232,7 +286,10 @@ async function saveRegistrationsToStorage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: "K-PULSE Global Tickets Store",
-        data: { tickets: state.registrations }
+        data: {
+          tickets: state.registrations,
+          customEvents: state.customEvents || []
+        }
       })
     });
   } catch (err) {
@@ -698,6 +755,113 @@ function handleRegistrationSubmit(e) {
     displayETicket(newRegistration);
     showToast("Registration successful! Your pass is ready.", "success");
   }, 600);
+}
+
+// ============================================================================
+// HOST A NEW EVENT HANDLER
+// ============================================================================
+async function handleHostEventSubmit(e) {
+  e.preventDefault();
+
+  const title = document.getElementById("host-title").value.trim();
+  const category = document.getElementById("host-category").value;
+  const dateVal = document.getElementById("host-date").value;
+  const timeVal = document.getElementById("host-time").value;
+  const venue = document.getElementById("host-venue").value.trim();
+  const capacity = parseInt(document.getElementById("host-capacity").value, 10) || 100;
+  const organizer = document.getElementById("host-organizer").value.trim();
+  const contact = document.getElementById("host-contact").value.trim();
+  const description = document.getElementById("host-desc").value.trim();
+  let banner = document.getElementById("host-banner").value.trim();
+
+  if (!title || !category || !dateVal || !venue || !organizer || !description) {
+    showToast("Please fill in all required fields to host an event.", "error");
+    return;
+  }
+
+  // Preset fallback images
+  if (!banner) {
+    const banners = {
+      Tech: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+      Cultural: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80",
+      Sports: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80",
+      Workshops: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
+      Business: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80"
+    };
+    banner = banners[category] || banners.Tech;
+  }
+
+  let formattedDate = dateVal;
+  try {
+    const d = new Date(dateVal);
+    formattedDate = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch (err) {}
+
+  const newEvent = {
+    id: "evt-hosted-" + Date.now(),
+    title: title,
+    category: category,
+    categoryLabel: category,
+    date: dateVal + "T" + timeVal + ":00",
+    displayDate: formattedDate,
+    time: timeVal,
+    venue: venue,
+    capacity: capacity,
+    registeredCount: 0,
+    price: "Free Pass",
+    description: description,
+    image: banner,
+    tags: [category, "Campus Event", "Live"],
+    schedule: [
+      { time: timeVal, title: "Opening Ceremony", description: "Inaugural address by " + organizer },
+      { time: "TBA", title: "Keynote & Proceedings", description: "Core sessions and activities" }
+    ],
+    speakers: [
+      {
+        name: organizer,
+        role: "Event Organizer",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+      }
+    ]
+  };
+
+  if (!state.customEvents) state.customEvents = [];
+  state.customEvents.unshift(newEvent);
+  state.events.unshift(newEvent);
+
+  try {
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_EVENTS, JSON.stringify(state.customEvents));
+  } catch (err) {}
+
+  renderEvents();
+  populateEventDropdown();
+  if (DOM.metricEventsCount) {
+    DOM.metricEventsCount.textContent = `${state.events.length}+`;
+  }
+
+  // Push to Global Cloud Store
+  try {
+    await fetch(GLOBAL_STORE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "K-PULSE Global Tickets Store",
+        data: {
+          tickets: state.registrations,
+          customEvents: state.customEvents
+        }
+      })
+    });
+  } catch (err) {
+    console.warn("Could not sync new event to cloud immediately:", err);
+  }
+
+  closeModal(DOM.hostEventModal);
+  DOM.hostEventForm.reset();
+  showToast(`Event "${title}" published live across all devices!`, "success");
+
+  const evtSec = document.getElementById("events-section");
+  if (evtSec) evtSec.scrollIntoView({ behavior: "smooth" });
 }
 
 // ============================================================================
@@ -1239,6 +1403,17 @@ function initEventListeners() {
   DOM.heroQuickRegBtn.addEventListener("click", () => {
     openRegistrationModal();
   });
+
+  // Host Event Triggers
+  if (DOM.hostEventBtn) {
+    DOM.hostEventBtn.addEventListener("click", () => openModal(DOM.hostEventModal));
+  }
+  if (DOM.heroHostEventBtn) {
+    DOM.heroHostEventBtn.addEventListener("click", () => openModal(DOM.hostEventModal));
+  }
+  if (DOM.hostEventForm) {
+    DOM.hostEventForm.addEventListener("submit", handleHostEventSubmit);
+  }
 
   // My Tickets Triggers
   DOM.myTicketsBtn.addEventListener("click", openMyTicketsDrawer);

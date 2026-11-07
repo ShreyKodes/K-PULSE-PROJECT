@@ -79,6 +79,11 @@
           <span class="tickets-badge" id="tickets-count-badge">0</span>
         </button>
 
+        <!-- Host Event Button -->
+        <button type="button" class="btn btn-primary btn-sm host-nav-btn" id="host-event-btn" title="Host your own campus event">
+          <i class="fa-solid fa-plus-circle"></i> <span>Host Event</span>
+        </button>
+
         <!-- Mobile Menu Toggle Hamburger -->
         <button type="button" class="mobile-toggle-btn" id="mobile-toggle" aria-label="Toggle Navigation Menu">
           <span></span>
@@ -113,6 +118,9 @@
           </a>
           <button type="button" class="btn btn-secondary btn-lg" id="hero-quick-register-btn">
             <i class="fa-solid fa-id-badge"></i> Quick Register
+          </button>
+          <button type="button" class="btn btn-outline btn-lg" id="hero-host-event-btn">
+            <i class="fa-solid fa-bullhorn"></i> Host an Event
           </button>
         </div>
 
@@ -822,7 +830,7 @@
         </div>
         <div>
           <h2 class="drawer-title" id="my-tickets-title">My Event Registrations</h2>
-          <p class="drawer-subtitle">Manage your booked events stored safely in your browser (LocalStorage).</p>
+          <p class="drawer-subtitle">Manage your booked events synced live across all devices.</p>
         </div>
       </div>
 
@@ -997,9 +1005,109 @@
     </div>
   </footer>
 
+  <!-- ========================================================
+       MODAL: HOST / CREATE EVENT
+       ======================================================== -->
+  <div class="modal-overlay" id="host-event-modal" aria-hidden="true" role="dialog" aria-labelledby="host-modal-title">
+    <div class="modal-card modal-form-card">
+      <button type="button" class="modal-close-btn" data-close-modal="host-event-modal" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="modal-header">
+        <div class="modal-header-icon" style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.2), rgba(249, 115, 22, 0.4)); color: #f97316;">
+          <i class="fa-solid fa-bullhorn"></i>
+        </div>
+        <div>
+          <h2 class="modal-title" id="host-modal-title">Host a Campus Event</h2>
+          <p class="modal-subtitle">Publish your event to the live global catalog for everyone to discover.</p>
+        </div>
+      </div>
+
+      <form id="host-event-form" class="registration-form" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="host-title">Event Title <span class="required">*</span></label>
+            <input type="text" id="host-title" name="title" class="form-input" placeholder="e.g. AI Hackathon 2026" required minlength="4">
+            <span class="form-feedback" id="host-title-feedback"></span>
+          </div>
+          <div class="form-group">
+            <label for="host-category">Category <span class="required">*</span></label>
+            <select id="host-category" name="category" class="form-input" required>
+              <option value="Tech">Technical / Coding</option>
+              <option value="Cultural">Cultural / Performing Arts</option>
+              <option value="Sports">Sports / Athletics</option>
+              <option value="Workshops">Hands-on Workshops</option>
+              <option value="Business">Business / E-Summit</option>
+            </select>
+            <span class="form-feedback" id="host-category-feedback"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="host-date">Event Date <span class="required">*</span></label>
+            <input type="date" id="host-date" name="date" class="form-input" required>
+            <span class="form-feedback" id="host-date-feedback"></span>
+          </div>
+          <div class="form-group">
+            <label for="host-time">Start Time <span class="required">*</span></label>
+            <input type="time" id="host-time" name="time" class="form-input" value="10:00" required>
+            <span class="form-feedback" id="host-time-feedback"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="host-venue">Venue / Campus Location <span class="required">*</span></label>
+            <input type="text" id="host-venue" name="venue" class="form-input" placeholder="e.g. Campus 6 Auditorium" required>
+            <span class="form-feedback" id="host-venue-feedback"></span>
+          </div>
+          <div class="form-group">
+            <label for="host-capacity">Seat Capacity <span class="required">*</span></label>
+            <input type="number" id="host-capacity" name="capacity" class="form-input" value="150" min="10" max="5000" required>
+            <span class="form-feedback" id="host-capacity-feedback"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="host-organizer">Host / Club Name <span class="required">*</span></label>
+            <input type="text" id="host-organizer" name="organizer" class="form-input" placeholder="e.g. Robotics Society" required>
+            <span class="form-feedback" id="host-organizer-feedback"></span>
+          </div>
+          <div class="form-group">
+            <label for="host-contact">Organizer Contact Email <span class="required">*</span></label>
+            <input type="email" id="host-contact" name="contact" class="form-input" placeholder="organizer@university.edu" required>
+            <span class="form-feedback" id="host-contact-feedback"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="host-desc">Event Synopsis & Agenda <span class="required">*</span></label>
+          <textarea id="host-desc" name="description" class="form-input form-textarea" rows="3" placeholder="Describe the event, highlights, and who should attend..." required minlength="20"></textarea>
+          <span class="form-feedback" id="host-desc-feedback"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="host-banner">Cover Image URL (Optional - Leave blank for default)</label>
+          <input type="url" id="host-banner" name="banner" class="form-input" placeholder="https://images.unsplash.com/...">
+          <span class="form-feedback" id="host-banner-feedback"></span>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="host-event-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submit-host-event-btn">
+            <i class="fa-solid fa-paper-plane"></i> Publish Event to Live Catalog
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/data.js?v=2.2"></script>
+  <script src="js/app.js?v=2.2"></script>
 </body>
 </html>
 
